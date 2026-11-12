@@ -1,0 +1,6 @@
+{
+  "name": "ControlMonitores - USCO",
+  "description": "Sistema de registro, control y seguimiento de horas para monitores de los Laboratorios Tecnológicos de la Facultad de Economía y Administración - Universidad Surcolombiana.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

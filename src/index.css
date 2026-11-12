@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  
+  /* Tokens Institucionales - USCO y Facultad de Economía y Administración */
+  --fea-blue: #003561;
+  --fea-blue-dark: #002240;
+  --fea-blue-light: #0d4b82;
+  --fea-blue-subtle: #edf4fa;
+
+  --usco-vinotinto: #8F141B;
+  --usco-vinotinto-hover: #751016;
+  --usco-vinotinto-subtle: #fdf2f2;
+  --usco-vinotinto-border: #f5c2c5;
+
+  --usco-gris: #4D626C;
+  --usco-gris-light: #70848E;
+  --usco-gris-subtle: #f2f5f7;
+  --usco-gris-border: #d2dbe0;
+
+  --usco-ocre: #DFD4A6;
+  --usco-ocre-subtle: #faf8ef;
+  --usco-ocre-dark: #7a6e3e;
+  --usco-ocre-border: #c9bea0;
+}
+
+/* Clases utilitarias directas para tokens institucionales */
+.bg-fea-blue { background-color: var(--fea-blue); }
+.bg-fea-blue-dark { background-color: var(--fea-blue-dark); }
+.text-fea-blue { color: var(--fea-blue); }
+.border-fea-blue { border-color: var(--fea-blue); }
+
+.bg-usco-vinotinto { background-color: var(--usco-vinotinto); }
+.hover\:bg-usco-vinotinto-hover:hover { background-color: var(--usco-vinotinto-hover); }
+.text-usco-vinotinto { color: var(--usco-vinotinto); }
+.border-usco-vinotinto { border-color: var(--usco-vinotinto); }
+
+.bg-usco-gris { background-color: var(--usco-gris); }
+.text-usco-gris { color: var(--usco-gris); }
+.border-usco-gris { border-color: var(--usco-gris-border); }
+
+.bg-usco-ocre { background-color: var(--usco-ocre); }
+.text-usco-ocre-dark { color: var(--usco-ocre-dark); }
+.border-usco-ocre { border-color: var(--usco-ocre-border); }
+
+code, kbd, samp, pre, .font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Custom scrollbars for clean dashboards */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
