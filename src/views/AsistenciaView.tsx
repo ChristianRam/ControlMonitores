@@ -140,15 +140,15 @@ export const AsistenciaView: React.FC = () => {
       {/* Header Context */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#003561]">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8F141B]">
             <span>Facultad de Economía y Administración</span>
-            <span className="text-[#DFD4A6]">·</span>
-            <span>Control de Asistencia & Evidencias Timemark</span>
+            <span className="text-[#4D626C]">·</span>
+            <span className="text-[#4D626C]">Control de Asistencia & Evidencias Timemark</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
             Registro de Jornadas y Verificación Timemark
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#4D626C] mt-0.5">
             Auditoría de fotografías originales tomadas con Timemark, consulta de Photo Codes en el portal oficial y convalidación de horas.
           </p>
         </div>
@@ -164,7 +164,7 @@ export const AsistenciaView: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por monitor, sala o Photo Code..."
-            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#003561]"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B]"
           />
         </div>
 
@@ -175,7 +175,7 @@ export const AsistenciaView: React.FC = () => {
             onChange={(e) => setFilterLab(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 outline-none focus:bg-white cursor-pointer"
           >
-            <option value="todos">Todos los Laboratorios</option>
+            <option value="todos">Todas las Salas</option>
             {laboratorios.map((l) => (
               <option key={l.id} value={l.id}>{l.nombre}</option>
             ))}
@@ -219,10 +219,10 @@ export const AsistenciaView: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#003561]/5 text-slate-700 uppercase tracking-wider text-[10px] font-semibold border-b border-slate-200">
+            <thead className="bg-[#8F141B]/5 text-[#4D626C] uppercase tracking-wider text-[10px] font-semibold border-b border-slate-200">
               <tr>
                 <th className="py-3 px-4">Estudiante Monitor</th>
-                <th className="py-3 px-4">Laboratorio Asignado</th>
+                <th className="py-3 px-4">Sala Asignada</th>
                 <th className="py-3 px-4">Horario Marcación</th>
                 <th className="py-3 px-4">Evidencias Timemark (Photo Codes)</th>
                 <th className="py-3 px-4">Horas</th>
@@ -234,9 +234,9 @@ export const AsistenciaView: React.FC = () => {
               {filteredAsistencias.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <CheckCircle2 className="w-8 h-8 text-[#003561] mx-auto mb-2 opacity-80" />
+                    <CheckCircle2 className="w-8 h-8 text-[#8F141B] mx-auto mb-2 opacity-80" />
                     <p className="font-semibold text-slate-800 text-sm">No se encontraron registros</p>
-                    <p className="text-xs mt-0.5">Ajusta los filtros de búsqueda o el laboratorio.</p>
+                    <p className="text-xs mt-0.5">Ajusta los filtros de búsqueda o la sala.</p>
                   </td>
                 </tr>
               ) : (
@@ -297,7 +297,7 @@ export const AsistenciaView: React.FC = () => {
 
                       <td className="py-3 px-4">
                         {asist.horas_calculadas > 0 ? (
-                          <span className="font-mono font-bold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/25 tabular-nums">
+                          <span className="font-mono font-bold text-[#8F141B] bg-[#8F141B]/10 px-2 py-0.5 rounded border border-[#8F141B]/25 tabular-nums">
                             {asist.horas_calculadas} hrs
                           </span>
                         ) : (
@@ -321,7 +321,7 @@ export const AsistenciaView: React.FC = () => {
                           )}
                           <button
                             onClick={() => handleOpenDetail(asist)}
-                            className="p-1 text-slate-500 hover:text-[#003561] hover:bg-slate-100 rounded cursor-pointer"
+                            className="p-1 text-slate-500 hover:text-[#8F141B] hover:bg-slate-100 rounded cursor-pointer"
                             title="Ver detalles completos de evidencias"
                           >
                             <Eye className="w-4 h-4" />
@@ -342,9 +342,9 @@ export const AsistenciaView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-[#003561] text-white sticky top-0 z-10">
+            <div className="flex items-center justify-between p-5 border-b border-[#6E0F14] bg-[#8F141B] text-white sticky top-0 z-10">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-[#8F141B] rounded-lg text-white">
+                <div className="p-2 bg-[#6E0F14] border border-[#DFD4A6]/30 rounded-lg text-[#DFD4A6]">
                   <Camera className="w-5 h-5" />
                 </div>
                 <div>
@@ -353,7 +353,7 @@ export const AsistenciaView: React.FC = () => {
                       Auditoría de Evidencias Timemark y Convalidación
                     </h3>
                     {selectedAsistencia.es_dato_prueba && (
-                      <span className="text-[10px] font-semibold bg-[#DFD4A6] text-[#003561] px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-semibold bg-[#DFD4A6] text-[#6E0F14] px-2 py-0.5 rounded">
                         Dato de Demostración
                       </span>
                     )}
@@ -379,7 +379,7 @@ export const AsistenciaView: React.FC = () => {
                   <p className="font-bold text-slate-900 text-xs mt-0.5">{selectedAsistencia.monitor_nombre}</p>
                 </div>
                 <div>
-                  <span className="text-[11px] text-[#4D626C] block font-semibold">Laboratorio:</span>
+                  <span className="text-[11px] text-[#4D626C] block font-semibold">Sala:</span>
                   <p className="font-bold text-slate-900 text-xs mt-0.5">{selectedAsistencia.laboratorio_nombre}</p>
                 </div>
                 <div>
@@ -390,24 +390,24 @@ export const AsistenciaView: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[11px] text-[#4D626C] block font-semibold">Horas a Convalidar:</span>
-                  <p className="font-mono font-bold text-[#003561] text-sm mt-0.5">
+                  <p className="font-mono font-bold text-[#8F141B] text-sm mt-0.5">
                     {selectedAsistencia.horas_calculadas} hrs
                   </p>
                 </div>
               </div>
 
               {/* Banner de Verificación Oficial Timemark con URL oficial */}
-              <div className="p-4 bg-[#f0f5fa] border border-[#003561]/25 rounded-xl space-y-2">
+              <div className="p-4 bg-[#faf8ef] border border-[#DFD4A6] rounded-xl space-y-2">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#003561]">
-                    <ShieldCheck className="w-4 h-4 text-[#003561]" />
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#8F141B]">
+                    <ShieldCheck className="w-4 h-4 text-[#8F141B]" />
                     <span>Servicio Oficial de Verificación Manual Timemark</span>
                   </div>
                   <a
                     href="https://verify.timemark.com/es"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#003561] hover:bg-[#002545] text-white text-[11px] font-semibold rounded-lg transition-colors cursor-pointer shrink-0 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8F141B] hover:bg-[#751016] text-white text-[11px] font-semibold rounded-lg transition-colors cursor-pointer shrink-0 shadow-2xs"
                   >
                     <span>Abrir verify.timemark.com/es</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -437,10 +437,10 @@ export const AsistenciaView: React.FC = () => {
                 <div className="p-4 bg-white border-2 border-slate-200 rounded-xl space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <span className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                      <Camera className="w-3.5 h-3.5 text-[#003561]" />
+                      <Camera className="w-3.5 h-3.5 text-[#8F141B]" />
                       <span>1. Fotografía Original de Entrada</span>
                     </span>
-                    <span className="font-mono text-[11px] font-semibold text-[#003561]">
+                    <span className="font-mono text-[11px] font-semibold text-[#8F141B]">
                       {selectedAsistencia.hora_entrada}
                     </span>
                   </div>
@@ -498,7 +498,7 @@ export const AsistenciaView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleCopyCode(selectedAsistencia.timemark_entrada_codigo!)}
-                        className="p-1.5 text-[#003561] hover:bg-[#003561]/10 rounded transition-colors cursor-pointer shrink-0"
+                        className="p-1.5 text-[#8F141B] hover:bg-[#8F141B]/10 rounded transition-colors cursor-pointer shrink-0"
                         title="Copiar Photo Code para verificar en verify.timemark.com/es"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -520,10 +520,10 @@ export const AsistenciaView: React.FC = () => {
                           className={`px-2 py-1.5 rounded text-[11px] font-semibold text-center border transition-all cursor-pointer ${
                             tempEntradaResultado === opc
                               ? opc === 'Auténtico'
-                                ? 'bg-[#003561] text-white border-[#003561]'
+                                ? 'bg-emerald-700 text-white border-emerald-700'
                                 : opc === 'Falso'
                                 ? 'bg-[#8F141B] text-white border-[#8F141B]'
-                                : 'bg-[#DFD4A6] text-[#003561] border-[#DFD4A6] font-bold'
+                                : 'bg-[#DFD4A6] text-[#6E0F14] border-[#c9bea0] font-bold'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
@@ -601,7 +601,7 @@ export const AsistenciaView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleCopyCode(selectedAsistencia.timemark_salida_codigo!)}
-                            className="p-1.5 text-[#003561] hover:bg-[#003561]/10 rounded transition-colors cursor-pointer shrink-0"
+                            className="p-1.5 text-[#8F141B] hover:bg-[#8F141B]/10 rounded transition-colors cursor-pointer shrink-0"
                             title="Copiar Photo Code para verificar en verify.timemark.com/es"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -623,10 +623,10 @@ export const AsistenciaView: React.FC = () => {
                               className={`px-2 py-1.5 rounded text-[11px] font-semibold text-center border transition-all cursor-pointer ${
                                 tempSalidaResultado === opc
                                   ? opc === 'Auténtico'
-                                    ? 'bg-[#003561] text-white border-[#003561]'
+                                    ? 'bg-emerald-700 text-white border-emerald-700'
                                     : opc === 'Falso'
                                     ? 'bg-[#8F141B] text-white border-[#8F141B]'
-                                    : 'bg-[#DFD4A6] text-[#003561] border-[#DFD4A6] font-bold'
+                                    : 'bg-[#DFD4A6] text-[#6E0F14] border-[#c9bea0] font-bold'
                                   : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                               }`}
                             >
@@ -638,7 +638,7 @@ export const AsistenciaView: React.FC = () => {
                     </>
                   ) : (
                     <div className="py-12 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center text-slate-500">
-                      <Clock className="w-6 h-6 text-[#003561] mx-auto mb-1 animate-pulse" />
+                      <Clock className="w-6 h-6 text-[#8F141B] mx-auto mb-1 animate-pulse" />
                       <p className="font-semibold text-slate-800">Turno en curso</p>
                       <p className="text-[11px] mt-0.5">La fotografía original de salida se registrará al finalizar la jornada.</p>
                     </div>
@@ -656,7 +656,7 @@ export const AsistenciaView: React.FC = () => {
                   value={tempTimemarkObs}
                   onChange={(e) => setTempTimemarkObs(e.target.value)}
                   placeholder="Registra hallazgos de la verificación manual (ej: verificado en verify.timemark.com/es, coinciden fecha, hora y coordenadas de la FEA)..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#003561]"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B]"
                 />
               </div>
 
@@ -709,8 +709,8 @@ export const AsistenciaView: React.FC = () => {
                     type="text"
                     value={notasCoordinador}
                     onChange={(e) => setNotasCoordinador(e.target.value)}
-                    placeholder="Ej. Turno verificado y convalidado conforme a la programación de los laboratorios."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#003561]"
+                    placeholder="Ej. Turno verificado y convalidado conforme a la programación de las salas."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B]"
                   />
                 </div>
               )}

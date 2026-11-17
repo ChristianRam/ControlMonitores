@@ -8,21 +8,21 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
-  // Paleta Institucional: Azul (#003561), Vinotinto (#8F141B), Gris (#4D626C), Ocre (#DFD4A6)
+  // Paleta Institucional USCO: Vinotinto (#8F141B), Beige (#DFD4A6), Gris (#4D626C) + semánticos
 
   if (type === 'timemark') {
     switch (value) {
       case 'Auténtico':
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/30">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#003561]" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
             Timemark: Auténtico
           </span>
         );
       case 'Pendiente':
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6E6130] bg-[#DFD4A6]/30 px-2 py-0.5 rounded border border-[#c9bea0]">
-            <Clock className="w-3.5 h-3.5 text-[#7a6e3e]" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6E6130] bg-[#DFD4A6]/35 px-2 py-0.5 rounded border border-[#c9bea0]">
+            <Clock className="w-3.5 h-3.5 text-[#6E6130]" />
             Timemark: Pendiente
           </span>
         );
@@ -56,7 +56,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
     switch (value) {
       case 'en_turno':
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/30">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8F141B] bg-[#8F141B]/10 px-2 py-0.5 rounded border border-[#8F141B]/30">
             <span className="w-1.5 h-1.5 rounded-full bg-[#8F141B] animate-pulse" />
             En Turno
           </span>
@@ -64,7 +64,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
       case 'activo':
         return (
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4D626C] bg-[#4D626C]/10 px-2 py-0.5 rounded border border-[#4D626C]/25">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#003561]" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
             Activo
           </span>
         );
@@ -84,8 +84,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
     switch (value) {
       case 'disponible':
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2.5 py-1 rounded border border-[#003561]/25">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#003561]" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
             Disponible
           </span>
         );
@@ -98,8 +98,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
         );
       case 'mantenimiento':
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7a6e3e] bg-[#DFD4A6]/30 px-2.5 py-1 rounded border border-[#c9bea0]">
-            <AlertTriangle className="w-3.5 h-3.5 text-[#7a6e3e]" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6E6130] bg-[#DFD4A6]/35 px-2.5 py-1 rounded border border-[#c9bea0]">
+            <AlertTriangle className="w-3.5 h-3.5 text-[#6E6130]" />
             Mantenimiento
           </span>
         );
@@ -112,22 +112,22 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
     switch (value) {
       case 'en_curso':
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/30">
-            <Clock className="w-3 h-3 text-[#003561]" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#8F141B] bg-[#8F141B]/10 px-2 py-0.5 rounded border border-[#8F141B]/30">
+            <Clock className="w-3 h-3 text-[#8F141B]" />
             En curso
           </span>
         );
       case 'pendiente_validacion':
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#7a6e3e] bg-[#DFD4A6]/30 px-2 py-0.5 rounded border border-[#c9bea0]">
-            <Clock className="w-3 h-3 text-[#7a6e3e]" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#6E6130] bg-[#DFD4A6]/35 px-2 py-0.5 rounded border border-[#c9bea0]">
+            <Clock className="w-3 h-3 text-[#6E6130]" />
             Por validar
           </span>
         );
       case 'aprobada':
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/30">
-            <CheckCircle2 className="w-3 h-3 text-[#003561]" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <CheckCircle2 className="w-3 h-3 text-emerald-700" />
             Aprobada
           </span>
         );
@@ -154,15 +154,15 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ type, value }) => {
     switch (value) {
       case 'pendiente':
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#7a6e3e] bg-[#DFD4A6]/30 px-2 py-0.5 rounded border border-[#c9bea0]">
-            <Clock className="w-3 h-3 text-[#7a6e3e]" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#6E6130] bg-[#DFD4A6]/35 px-2 py-0.5 rounded border border-[#c9bea0]">
+            <Clock className="w-3 h-3 text-[#6E6130]" />
             Pendiente
           </span>
         );
       case 'aprobada':
         return (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/30">
-            <CheckCircle2 className="w-3 h-3 text-[#003561]" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <CheckCircle2 className="w-3 h-3 text-emerald-700" />
             Resuelta (Aprobada)
           </span>
         );

@@ -25,14 +25,14 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#003561]/10 rounded-lg text-[#003561]">
-              <Target className="w-5 h-5 text-[#003561]" />
+            <div className="p-2 bg-[#8F141B]/10 rounded-lg text-[#8F141B]">
+              <Target className="w-5 h-5 text-[#8F141B]" />
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">
                 Configurar Meta de Cumplimiento
               </h3>
-              <p className="text-xs text-[#4D626C]">Laboratorios Facultad de Economía y Administración</p>
+              <p className="text-xs text-[#4D626C]">Salas Facultad de Economía y Administración</p>
             </div>
           </div>
           <button
@@ -57,7 +57,7 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
                 required
                 value={horasInput}
                 onChange={(e) => setHorasInput(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm font-mono font-bold outline-none focus:bg-white focus:border-[#003561]"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm font-mono font-bold outline-none focus:bg-white focus:border-[#8F141B]"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
                 horas
@@ -79,7 +79,7 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
                 onClick={() => setHorasInput(112)}
                 className={`px-3 py-1 text-xs rounded border transition-colors font-mono cursor-pointer ${
                   horasInput === 112 
-                    ? 'bg-[#003561] text-white border-[#003561] font-bold' 
+                    ? 'bg-[#8F141B] text-white border-[#8F141B] font-bold' 
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -90,7 +90,7 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
                 onClick={() => setHorasInput(80)}
                 className={`px-3 py-1 text-xs rounded border transition-colors font-mono cursor-pointer ${
                   horasInput === 80 
-                    ? 'bg-[#003561] text-white border-[#003561] font-bold' 
+                    ? 'bg-[#8F141B] text-white border-[#8F141B] font-bold' 
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -101,7 +101,7 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
                 onClick={() => setHorasInput(120)}
                 className={`px-3 py-1 text-xs rounded border transition-colors font-mono cursor-pointer ${
                   horasInput === 120 
-                    ? 'bg-[#003561] text-white border-[#003561] font-bold' 
+                    ? 'bg-[#8F141B] text-white border-[#8F141B] font-bold' 
                     : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -116,7 +116,7 @@ export const ConfigurarMetaModal: React.FC<ConfigurarMetaModalProps> = ({ isOpen
                 type="checkbox"
                 checked={actualizarTodos}
                 onChange={(e) => setActualizarTodos(e.target.checked)}
-                className="mt-0.5 rounded text-[#003561] focus:ring-[#003561]"
+                className="mt-0.5 rounded text-[#8F141B] focus:ring-[#8F141B] accent-[#8F141B]"
               />
               <span className="text-[11px] text-slate-700 leading-normal">
                 Actualizar automáticamente la meta a los <strong>{monitores.length} monitores</strong> registrados en el sistema.

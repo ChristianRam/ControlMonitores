@@ -18,14 +18,41 @@ import { AsistenciaView } from './views/AsistenciaView';
 import { ReportesView } from './views/ReportesView';
 import { NovedadesView } from './views/NovedadesView';
 import { MonitorDashboardView } from './views/MonitorDashboardView';
+import { Loader2 } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { currentUser, currentRole, activeTab } = useApp();
+  const { currentUser, currentRole, authInitializing, activeTab } = useApp();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
-  // Si no hay usuario autenticado o está explícitamente en la vista de login
-  if (!currentUser || activeTab === 'login') {
-    return <LoginView />;
+  if (authInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-6 text-slate-700">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-8 py-7 flex flex-col items-center gap-3 max-w-sm w-full text-center">
+          <div className="w-11 h-11 rounded-xl bg-[#8F141B] text-[#DFD4A6] flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#8F141B]">Control de Monitores</p>
+            <p className="text-xs text-[#4D626C] mt-1">Verificando sesión y perfil institucional...</p>
+          </div>
+        </div>
+        <ToastContainer />
+      </div>
+    );
+  }
+
+  // Bloquear acceso si no hay usuario autenticado o rol válido
+  if (
+    !currentUser ||
+    (currentRole !== 'admin' && currentRole !== 'monitor') ||
+    activeTab === 'login'
+  ) {
+    return (
+      <>
+        <LoginView />
+        <ToastContainer />
+      </>
+    );
   }
 
   const renderActiveView = () => {
@@ -38,6 +65,8 @@ const MainLayout: React.FC = () => {
       if (activeTab === 'monitor_dashboard') {
         return <AdminDashboardView />;
       }
+    } else {
+      return <LoginView />;
     }
 
     switch (activeTab) {

@@ -10,8 +10,7 @@ import {
   Clock, 
   Database,
   Building,
-  CheckCircle2,
-  GraduationCap
+  CheckCircle2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -69,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     },
     {
       id: 'laboratorios' as NavigationTab,
-      label: 'Salas y Laboratorios',
+      label: 'Salas',
       icon: MonitorPlay,
       roles: ['admin'],
       badge: null,
@@ -99,36 +98,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     },
   ];
 
-  const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
+  const filteredNavItems = navItems.filter(item =>
+    currentRole ? item.roles.includes(currentRole) : false
+  );
 
   return (
-    <aside className="w-64 bg-[#003561] text-slate-200 flex flex-col h-full border-r border-[#002545] select-none">
-      {/* Context Header with Faculty Branding */}
-      <div className="p-4 border-b border-[#002545] bg-[#002b4f]">
+    <aside className="w-64 bg-[#8F141B] text-white/90 flex flex-col h-full border-r border-[#6E0F14] select-none">
+      {/* Context Header with Institutional Branding */}
+      <div className="p-4 border-b border-[#6E0F14] bg-[#751016]">
         {!logoError ? (
-          <div className="mb-2.5 bg-white/95 rounded p-1.5 flex items-center justify-center shadow-xs border border-white/20">
+          <div className="mb-3 bg-white rounded-lg px-2.5 py-2 flex items-center justify-center shadow-xs border border-[#DFD4A6]/40">
             <img
-              src="https://www.usco.edu.co/imagen-institucional/facultades/economia-y-administracion.png"
-              alt="Facultad de Economía y Administración - Universidad Surcolombiana"
-              className="h-8 w-auto object-contain"
-              referrerPolicy="no-referrer"
+              src="/assets/aistudio/IMG_7384_056b4251.PNG"
+              alt="Universidad Surcolombiana - Laboratorio Tecnológico José Ignacio Hembuz Palomino - Facultad de Economía y Administración"
+              className="w-full h-auto max-h-14 object-contain"
               onError={() => setLogoError(true)}
             />
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#DFD4A6]">
-          <Building className="w-4 h-4 text-[#DFD4A6]" />
-          <span>Facultad de Economía</span>
+        <div className="space-y-0.5">
+          <div className="flex items-start gap-2 text-xs font-bold text-[#DFD4A6] leading-snug">
+            <Building className="w-3.5 h-3.5 text-[#DFD4A6] shrink-0 mt-0.5" />
+            <span>Facultad de Economía y Administración</span>
+          </div>
+          <p className="text-[11px] text-white/90 pl-5.5 leading-snug">
+            Universidad Surcolombiana - Sede Neiva
+          </p>
         </div>
-        <p className="text-[11px] text-slate-300 mt-0.5">
-          Universidad Surcolombiana · Neiva
-        </p>
       </div>
 
       {/* Navigation Links */}
       <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-300">
+        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[#DFD4A6]/90">
           Módulos del Sistema
         </div>
 
@@ -142,14 +144,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
               onClick={() => handleNav(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group cursor-pointer ${
                 isActive
-                  ? 'bg-[#8F141B] text-white shadow-sm font-semibold'
-                  : 'text-slate-200 hover:text-white hover:bg-white/10'
+                  ? 'bg-white text-[#8F141B] shadow-sm font-bold border-l-4 border-[#DFD4A6]'
+                  : 'text-white/90 hover:text-white hover:bg-[#751016]'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <Icon
                   className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : 'text-slate-300 group-hover:text-[#DFD4A6]'
+                    isActive ? 'text-[#8F141B]' : 'text-[#DFD4A6]/90 group-hover:text-[#DFD4A6]'
                   }`}
                 />
                 <span className="truncate">{item.label}</span>
@@ -157,14 +159,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
 
               {item.badge && (
                 <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                     isActive
-                      ? 'bg-black/30 text-white'
+                      ? 'bg-[#8F141B]/10 text-[#8F141B] font-bold'
                       : item.badgeColor === 'ocre'
-                      ? 'bg-[#DFD4A6] text-[#003561] font-bold'
+                      ? 'bg-[#DFD4A6] text-[#6E0F14] font-bold'
                       : item.badgeColor === 'vinotinto'
-                      ? 'bg-[#8F141B] text-white font-bold'
-                      : 'bg-[#002545] text-slate-200 border border-white/10'
+                      ? 'bg-[#6E0F14] text-[#DFD4A6] border border-[#DFD4A6]/40 font-bold'
+                      : 'bg-[#6E0F14] text-white/90 border border-white/15'
                   }`}
                 >
                   {item.badge}
@@ -176,15 +178,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       </div>
 
       {/* Supabase Ready Badge / Architecture Info Box */}
-      <div className="p-3.5 m-3 rounded-lg bg-[#002545] border border-[#0d4677] text-xs">
+      <div className="p-3.5 m-3 rounded-lg bg-[#6E0F14] border border-[#DFD4A6]/25 text-xs">
         <div className="flex items-center gap-2 font-medium text-[#DFD4A6]">
           <Database className="w-3.5 h-3.5" />
           <span>Arquitectura Supabase</span>
         </div>
-        <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+        <p className="text-[11px] text-white/85 mt-1 leading-relaxed">
           Estructura SQL, esquemas de tablas y storage listos para conexión backend.
         </p>
-        <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-300 font-mono">
+        <div className="mt-2 pt-2 border-t border-white/15 flex items-center justify-between text-[10px] text-white/80 font-mono">
           <span>RLS & Auth</span>
           <span className="text-[#DFD4A6] flex items-center gap-1 font-sans font-semibold">
             <CheckCircle2 className="w-3 h-3 text-[#DFD4A6]" /> Preparado

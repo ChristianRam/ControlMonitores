@@ -71,7 +71,7 @@ export const NovedadesView: React.FC = () => {
     resolverNovedad(
       selectedNovedad.id, 
       estado, 
-      respuestaResolucion || (estado === 'aprobada' ? 'Aprobado formalmente por coordinación de laboratorios.' : 'Rechazado tras revisión técnica.')
+      respuestaResolucion || (estado === 'aprobada' ? 'Aprobado formalmente por coordinación de salas.' : 'Rechazado tras revisión técnica.')
     );
     setSelectedNovedad(null);
     setRespuestaResolucion('');
@@ -118,7 +118,7 @@ export const NovedadesView: React.FC = () => {
       {/* Header Context */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#003561]">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#8F141B]">
             <span>Facultad de Economía y Administración</span>
             <span>·</span>
             <span>{isMonitor ? 'Portal del Monitor' : 'Mesa de Ayuda y Correcciones'}</span>
@@ -129,14 +129,14 @@ export const NovedadesView: React.FC = () => {
           <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
             {isMonitor
               ? 'Seguimiento a tus solicitudes individuales de ajuste, justificaciones médicas y novedades radicadas.'
-              : 'Gestión y resolución de solicitudes de ajuste de horarios, justificaciones médicas y reportes de laboratorios.'}
+              : 'Gestión y resolución de solicitudes de ajuste de horarios, justificaciones médicas y reportes de salas.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           {isMonitor && (
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#003561]/5 border border-[#003561]/20 rounded-lg text-xs font-semibold text-[#003561]">
-              <UserCheck className="w-4 h-4 text-[#003561]" />
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#faf8ef] border border-[#DFD4A6] rounded-lg text-xs font-semibold text-[#8F141B]">
+              <UserCheck className="w-4 h-4 text-[#8F141B]" />
               <span>{baseNovedades.length} radicadas ({totalPendientes} pendientes)</span>
             </div>
           )}
@@ -160,7 +160,7 @@ export const NovedadesView: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={isMonitor ? "Buscar en mis solicitudes..." : "Buscar por asunto, monitor o detalle..."}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#003561]"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B]"
           />
         </div>
 
@@ -196,7 +196,7 @@ export const NovedadesView: React.FC = () => {
       <div className="space-y-3">
         {filteredNovedades.length === 0 ? (
           <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-xs text-slate-500 shadow-xs">
-            <CheckCircle2 className="w-8 h-8 text-[#003561] mx-auto mb-2 opacity-80" />
+            <CheckCircle2 className="w-8 h-8 text-[#8F141B] mx-auto mb-2 opacity-80" />
             <p className="font-semibold text-slate-800 text-sm">
               {isMonitor ? 'No tienes novedades radicadas' : 'No hay novedades registradas'}
             </p>
@@ -214,10 +214,15 @@ export const NovedadesView: React.FC = () => {
             >
               <div className="space-y-1.5 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-semibold text-[#003561] bg-[#003561]/10 px-2 py-0.5 rounded border border-[#003561]/20">
+                  <span className="text-[11px] font-semibold text-[#8F141B] bg-[#DFD4A6]/35 px-2 py-0.5 rounded border border-[#DFD4A6]">
                     {getTipoLabel(novedad.tipo)}
                   </span>
                   <StatusBadge type="novedad" value={novedad.estado} />
+                  {novedad.es_dato_prueba && (
+                    <span className="text-[9px] font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">
+                      Demo
+                    </span>
+                  )}
                   <span className="text-[11px] text-[#4D626C] font-mono">
                     Fecha del suceso: {novedad.fecha_incidencia}
                   </span>
@@ -236,7 +241,7 @@ export const NovedadesView: React.FC = () => {
                     <span>Monitor: <strong className="text-slate-800">{novedad.monitor_nombre}</strong></span>
                   )}
                   {novedad.horas_solicitadas && (
-                    <span>Horas solicitadas: <strong className="text-[#003561] font-mono">+{novedad.horas_solicitadas} hrs</strong></span>
+                    <span>Horas solicitadas: <strong className="text-[#8F141B] font-mono">+{novedad.horas_solicitadas} hrs</strong></span>
                   )}
                 </div>
 
@@ -290,7 +295,7 @@ export const NovedadesView: React.FC = () => {
                   <h3 className="text-base font-bold text-slate-900">
                     Radicar Solicitud o Novedad
                   </h3>
-                  <p className="text-xs text-slate-500">Mesa de ayuda de laboratorios FEA</p>
+                  <p className="text-xs text-slate-500">Mesa de ayuda de salas FEA</p>
                 </div>
               </div>
               <button
@@ -325,7 +330,7 @@ export const NovedadesView: React.FC = () => {
                   value={nuevaNovedad.titulo}
                   onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, titulo: e.target.value })}
                   placeholder="Ej. Olvido de registro de salida por corte de luz"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-[#003561]"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-[#8F141B]"
                 />
               </div>
 
@@ -337,7 +342,7 @@ export const NovedadesView: React.FC = () => {
                     required
                     value={nuevaNovedad.fecha_incidencia}
                     onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, fecha_incidencia: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-[#003561]"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-[#8F141B]"
                   />
                 </div>
                 <div>
@@ -347,7 +352,7 @@ export const NovedadesView: React.FC = () => {
                     step="0.5"
                     value={nuevaNovedad.horas_solicitadas}
                     onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, horas_solicitadas: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none font-mono focus:border-[#003561]"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none font-mono focus:border-[#8F141B]"
                   />
                 </div>
               </div>
@@ -360,7 +365,7 @@ export const NovedadesView: React.FC = () => {
                   value={nuevaNovedad.descripcion}
                   onChange={(e) => setNuevaNovedad({ ...nuevaNovedad, descripcion: e.target.value })}
                   placeholder="Explica detalladamente la situación y los soportes que acreditan el turno..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none resize-none focus:border-[#003561]"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none resize-none focus:border-[#8F141B]"
                 />
               </div>
 
@@ -415,7 +420,7 @@ export const NovedadesView: React.FC = () => {
                   "{selectedNovedad.descripcion}"
                 </p>
                 {selectedNovedad.horas_solicitadas && (
-                  <p className="text-[11px] font-bold text-[#003561]">
+                  <p className="text-[11px] font-bold text-[#8F141B]">
                     Ajuste solicitado: +{selectedNovedad.horas_solicitadas} horas
                   </p>
                 )}
@@ -431,13 +436,13 @@ export const NovedadesView: React.FC = () => {
                     value={respuestaResolucion}
                     onChange={(e) => setRespuestaResolucion(e.target.value)}
                     placeholder="Escribe la respuesta formal para el estudiante..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none resize-none focus:border-[#003561]"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none resize-none focus:border-[#8F141B]"
                   />
                 </div>
               ) : selectedNovedad.respuesta_coordinador ? (
                 <div>
                   <span className="font-semibold text-slate-800 block mb-1">Respuesta Registrada:</span>
-                  <div className="p-3 bg-[#003561]/5 border border-[#003561]/20 rounded text-slate-700">
+                  <div className="p-3 bg-[#faf8ef] border border-[#DFD4A6] rounded text-slate-700">
                     {selectedNovedad.respuesta_coordinador}
                   </div>
                 </div>
@@ -458,7 +463,7 @@ export const NovedadesView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleResolver('rechazada')}
-                    className="px-3 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                    className="px-3 py-1.5 bg-[#4D626C] hover:bg-[#3B4C54] text-white rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <ThumbsDown className="w-3.5 h-3.5" />
                     <span>Rechazar</span>
@@ -466,7 +471,7 @@ export const NovedadesView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleResolver('aprobada')}
-                    className="px-3 py-1.5 bg-[#003561] hover:bg-[#002747] text-white rounded text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer"
+                    className="px-3 py-1.5 bg-[#8F141B] hover:bg-[#751016] text-white rounded text-xs font-semibold flex items-center gap-1 shadow-xs cursor-pointer"
                   >
                     <ThumbsUp className="w-3.5 h-3.5" />
                     <span>Aprobar Solicitud</span>

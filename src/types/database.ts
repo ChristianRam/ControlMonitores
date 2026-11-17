@@ -45,19 +45,13 @@ export interface Monitor {
   created_at: string;
 }
 
-// 2. Tabla: laboratorios
+// 2. Tabla: laboratorios (columnas adicionales permanecen intactas en Supabase sin utilizarse desde la app)
 export interface Laboratorio {
   id: string;
   nombre: string;
-  codigo: string; // Ej: LAB-FEA-01
-  ubicacion: string; // Ej: Edificio Central, Piso 2, Ala Sur
-  capacidad_equipos: number;
-  equipos_operativos: number;
-  software_instalado: string[];
-  descripcion: string;
+  codigo: string; // Ej: SALA-01
   estado: EstadoLaboratorio;
   monitor_actual_id?: string | null;
-  horario_atencion: string;
   created_at: string;
 }
 
@@ -90,10 +84,12 @@ export interface Asistencia {
   hora_salida?: string | null; // HH:mm:ss
   horas_calculadas: number;
   estado: EstadoAsistencia;
-  foto_entrada_url?: string; // Supabase Storage bucket 'evidencias-timemark'
+  foto_entrada_url?: string; // URL firmada temporal para visualización
+  foto_entrada_path?: string; // Ruta privada en bucket 'evidencias-timemark'
   foto_entrada_nombre?: string;
   foto_entrada_tamano?: number;
   foto_salida_url?: string;
+  foto_salida_path?: string;
   foto_salida_nombre?: string;
   foto_salida_tamano?: number;
   
@@ -121,6 +117,7 @@ export interface ArchivoEvidencia {
   nombre: string;
   tamano: number;
   tipoMime: string;
+  file?: File;
 }
 
 // 4. Tabla: novedades (Solicitudes de corrección e incidencias)
@@ -138,6 +135,7 @@ export interface Novedad {
   respuesta_coordinador?: string;
   fecha_resolucion?: string;
   evidencia_url?: string;
+  es_dato_prueba?: boolean;
   created_at: string;
 }
 
