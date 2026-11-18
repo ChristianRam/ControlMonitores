@@ -16,6 +16,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { ConfigurarMetaModal } from '../components/modals/ConfigurarMetaModal';
+import { NOMBRE_LABORATORIO, PROGRAMAS_ACADEMICOS } from '../lib/constants';
 
 export const ReportesView: React.FC = () => {
   const { monitores, monitoresLoading, monitoresError, periodo, asistencias, addToast, currentRole, currentMonitorData, metaGeneralHoras } = useApp();
@@ -184,29 +185,9 @@ export const ReportesView: React.FC = () => {
 
         {/* Tab Switcher: Solo visible para coordinadores */}
         {!isMonitor ? (
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 self-start sm:self-auto shrink-0">
-            <button
-              onClick={() => setActiveTab('general')}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                activeTab === 'general'
-                  ? 'bg-white text-[#8F141B] shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <FileSpreadsheet className="w-4 h-4 text-[#8F141B]" />
-              <span>Consolidado General</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('individual')}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                activeTab === 'individual'
-                  ? 'bg-white text-[#8F141B] shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <FileText className="w-4 h-4 text-[#8F141B]" />
-              <span>Ficha Individual / Paz y Salvo</span>
-            </button>
+          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 self-start sm:self-auto shrink-0 text-xs font-bold text-[#8F141B]">
+            <FileSpreadsheet className="w-4 h-4 text-[#8F141B]" />
+            <span>Consolidado General</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 bg-[#faf8ef] border border-[#DFD4A6] px-3 py-1.5 rounded-lg text-xs font-semibold text-[#8F141B]">
@@ -249,7 +230,7 @@ export const ReportesView: React.FC = () => {
               <p className="text-2xl font-bold text-[#8F141B] font-mono mt-1 tabular-nums">
                 {totalMonitoresCompletados} de {filteredMonitores.length}
               </p>
-              <p className="text-[11px] text-slate-500 mt-1">Listos para emisión de Paz y Salvo</p>
+              <p className="text-[11px] text-slate-500 mt-1">Con la meta de horas cumplida</p>
             </div>
             <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
               <span className="text-xs font-semibold text-slate-500">Promedio de Avance</span>
@@ -274,9 +255,9 @@ export const ReportesView: React.FC = () => {
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 outline-none"
               >
                 <option value="todos">Todos los Programas de la Facultad</option>
-                <option value="Economía">Economía</option>
-                <option value="Contaduría Pública">Contaduría Pública</option>
-                <option value="Administración de Empresas">Administración de Empresas</option>
+                {PROGRAMAS_ACADEMICOS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
               </select>
             </div>
 
@@ -310,26 +291,25 @@ export const ReportesView: React.FC = () => {
                     <th className="py-3 px-4">Meta</th>
                     <th className="py-3 px-4">Horas Aprobadas</th>
                     <th className="py-3 px-4">Porcentaje</th>
-                    <th className="py-3 px-4">Estado Paz y Salvo</th>
-                    <th className="py-3 px-4 text-right">Constancia</th>
+                    <th className="py-3 px-4">Estado de Cumplimiento</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   {monitoresLoading && monitores.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-slate-500">
                         Cargando nómina real de monitores desde Supabase...
                       </td>
                     </tr>
                   ) : monitoresError ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-[#8F141B]">
+                      <td colSpan={7} className="py-8 text-center text-[#8F141B]">
                         {monitoresError}
                       </td>
                     </tr>
                   ) : filteredMonitores.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-8 text-center text-slate-500">
                         No hay monitores registrados para mostrar con el filtro seleccionado.
                       </td>
                     </tr>
@@ -370,24 +350,13 @@ export const ReportesView: React.FC = () => {
                             {cumplido ? (
                               <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-700" />
-                                Paz y Salvo Aprobado
+                                Meta cumplida
                               </span>
                             ) : (
                               <span className="text-[11px] text-[#4D626C] font-medium">
                                 En proceso (Faltan {Math.max(0, m.horas_asignadas - m.horas_aprobadas).toFixed(1)} hrs)
                               </span>
                             )}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={() => {
-                                setSelectedMonitorId(m.id);
-                                setActiveTab('individual');
-                              }}
-                              className="text-xs font-semibold text-[#8F141B] hover:text-[#721015] cursor-pointer"
-                            >
-                              Ver Ficha
-                            </button>
                           </td>
                         </tr>
                       );
@@ -541,7 +510,7 @@ export const ReportesView: React.FC = () => {
                         Facultad de Economía y Administración
                       </h2>
                       <p className="text-xs text-[#4D626C] font-medium">
-                        Coordinación General de Salas Tecnológicas y Salas de Cómputo
+                        Coordinación General del {NOMBRE_LABORATORIO}
                       </p>
                     </div>
                   </div>
@@ -563,7 +532,7 @@ export const ReportesView: React.FC = () => {
               {/* Cuerpo del Certificado */}
               <div className="space-y-6 text-xs text-slate-800 leading-relaxed">
                 <p>
-                  El suscrito Coordinador de Salas Tecnológicas de la Facultad de Economía y Administración de la 
+                  El suscrito Coordinador del {NOMBRE_LABORATORIO} de la Facultad de Economía y Administración de la 
                   <strong> Universidad Surcolombiana</strong>, hace constar que el (la) estudiante:
                 </p>
 
@@ -588,7 +557,7 @@ export const ReportesView: React.FC = () => {
                 </div>
 
                 <p>
-                  Ha prestado satisfactoriamente sus servicios de monitoría académica y soporte tecnológico en las salas de cómputo de la Facultad, acumulando el siguiente registro certificado y validado con evidencias fotográficas Timemark:
+                  Ha prestado satisfactoriamente sus servicios de monitoría académica y soporte tecnológico en el {NOMBRE_LABORATORIO}, acumulando el siguiente registro certificado y validado con evidencias fotográficas Timemark:
                 </p>
 
                 {/* Balance de horas */}
@@ -680,7 +649,7 @@ export const ReportesView: React.FC = () => {
                 <div className="pt-14 flex justify-center text-center">
                   <div className="w-full max-w-xs sm:max-w-sm border-t border-slate-400 pt-2">
                     <p className="font-bold text-slate-900">{coordinadorNombre}</p>
-                    <p className="text-[11px] text-[#4D626C]">Coordinador de Salas Tecnológicas</p>
+                    <p className="text-[11px] text-[#4D626C]">Coordinador del {NOMBRE_LABORATORIO}</p>
                     <p className="text-[10px] text-slate-500">Facultad de Economía y Administración - USCO</p>
                   </div>
                 </div>

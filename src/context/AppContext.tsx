@@ -28,14 +28,16 @@ import {
   validarArchivoEvidencia,
   validarFormatoPhotoCode,
 } from '../lib/timemark';
+import {
+  NOMBRE_LABORATORIO,
+  OTRAS_ACTIVIDADES_CODE,
+  PROGRAMAS_ACADEMICOS,
+  MAX_TURNO_MINUTOS,
+} from '../lib/constants';
 
-const OFFICIAL_SALA_CODES = ['SALA-01', 'SALA-02', 'SALA-03', 'SALA-04', 'SALA-05', 'SALA-06'] as const;
+const OFFICIAL_SALA_CODES = ['SALA-01', 'SALA-02', 'SALA-03', 'SALA-04', 'SALA-05', 'SALA-06', OTRAS_ACTIVIDADES_CODE] as const;
 
-const VALID_PROGRAMAS: ProgramaAcademico[] = [
-  'Administración de Empresas',
-  'Contaduría Pública',
-  'Economía',
-];
+const VALID_PROGRAMAS: ProgramaAcademico[] = PROGRAMAS_ACADEMICOS;
 
 const mapMonitorRow = (row: Record<string, unknown>, fallbackHorasAsignadas = 112): Monitor => {
   const rawPrograma = typeof row.programa_academico === 'string' ? row.programa_academico.trim() : '';
@@ -346,6 +348,17 @@ export interface MonitorEditPayload {
   laboratorio_habitual_id: string | null;
 }
 
+export interface NuevoMonitorPayload {
+  nombres: string;
+  apellidos: string;
+  codigo_estudiantil: string;
+  correo_institucional: string;
+  programa_academico: ProgramaAcademico;
+  semestre: number;
+  telefono: string;
+  password: string;
+}
+
 interface AppContextType {
   currentUser: UserProfile | null;
   currentRole: Role | null;
@@ -393,6 +406,14 @@ interface AppContextType {
     monitorId: string,
     nuevasHoras: number
   ) => Promise<{ ok: boolean; error?: string; monitor?: Monitor }>;
+  crearMonitor: (payload: NuevoMonitorPayload) => Promise<{ ok: boolean; error?: string }>;
+  eliminarMonitor: (monitorId: string) => Promise<{ ok: boolean; error?: string }>;
+  ajustarHorasMonitor: (
+    monitorId: string,
+    horas: number,
+    operacion: 'sumar' | 'restar'
+  ) => Promise<{ ok: boolean; error?: string; monitor?: Monitor }>;
+  cerrarTurnoVencido: () => Promise<void>;
   agregarMonitor: (monitor: Omit<Monitor, 'id' | 'horas_aprobadas' | 'horas_pendientes' | 'created_at'>) => void;
   actualizarMonitor: (monitor: Monitor) => void;
   
@@ -760,7 +781,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             perfil.cargo_descripcion ||
             perfil.cargo ||
             (role === 'admin'
-              ? 'Coordinador de Salas Tecnológicas - Facultad de Economía y Administración'
+              ? `Coordinador del ${NOMBRE_LABORATORIO} - Facultad de Economía y Administración`
               : 'Monitor Académico'),
         };
 
@@ -1204,6 +1225,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
+  // Validación: el Photo Code y la fotografía no pueden repetirse entre entradas/salidas
+  // (ni dentro de la misma jornada ni respecto a jornadas anteriores del monitor).
+  const verificarEvidenciaNoDuplicada = (
+    tipo: 'entrada' | 'salida',
+    codigoLimpio: string,
+    fotoArchivo?: ArchivoEvidencia | File | string
+  ): string | null => {
+    const monitorId = currentMonitorRef.current?.id;
+    const propias = asistencias.filter((a) => a.monitor_id === monitorId && !a.es_dato_prueba);
+    const codigo = codigoLimpio.trim().toUpperCase();
+
+    for (const a of propias) {
+      const usado = [a.timemark_entrada_codigo, a.timemark_salida_codigo]
+        .filter((c): c is string => Boolean(c))
+        .map((c) => c.trim().toUpperCase());
+      if (usado.includes(codigo)) {
+        return `El Photo Code ${codigo} ya fue utilizado en una marcación anterior (${a.fecha}). El código de entrada y el de salida deben ser distintos y no se pueden reutilizar.`;
+      }
+    }
+
+    const fileObj: File | undefined =
+      fotoArchivo instanceof File
+        ? fotoArchivo
+        : typeof fotoArchivo === 'object' && fotoArchivo !== null
+        ? fotoArchivo.file
+        : undefined;
+
+    if (fileObj) {
+      for (const a of propias) {
+        const misma = (nombre?: string, tamano?: number) =>
+          Boolean(nombre) && nombre === fileObj.name && tamano === fileObj.size;
+        if (
+          misma(a.foto_entrada_nombre, a.foto_entrada_tamano) ||
+          misma(a.foto_salida_nombre, a.foto_salida_tamano)
+        ) {
+          return `La fotografía "${fileObj.name}" ya fue cargada en una marcación anterior (${a.fecha}). Debes tomar una fotografía nueva con Timemark para la ${tipo}.`;
+        }
+      }
+    }
+
+    return null;
+  };
+
   // Turno: Registrar Inicio de Turno real en Supabase (Storage privado + RPC registrar_inicio_turno)
   const registrarEntrada = async (
     laboratorioId: string,
@@ -1250,10 +1314,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { ok: false, error: msg };
     }
 
-    if (lab.estado !== 'disponible') {
+    // "Otras actividades" no es una sala física: siempre se puede seleccionar
+    if (lab.codigo !== OTRAS_ACTIVIDADES_CODE && lab.estado !== 'disponible') {
       const msg = `La sala "${lab.nombre}" se encuentra actualmente en estado "${lab.estado}". Selecciona una sala disponible.`;
       addToast('Sala No Disponible', msg, 'warning');
       return { ok: false, error: msg };
+    }
+
+    const codigoEntradaCheck = validarFormatoPhotoCode(timemarkCodigo);
+    if (codigoEntradaCheck.valid) {
+      const duplicado = verificarEvidenciaNoDuplicada('entrada', codigoEntradaCheck.clean, fotoArchivo);
+      if (duplicado) {
+        addToast('Evidencia Duplicada', duplicado, 'error');
+        return { ok: false, error: duplicado };
+      }
     }
 
     try {
@@ -1333,6 +1407,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const msg = 'No tienes un turno en curso abierto para registrar la salida.';
       addToast('Sin Turno Activo', msg, 'warning');
       return { ok: false, error: msg };
+    }
+
+    const codigoSalidaCheck = validarFormatoPhotoCode(timemarkCodigo);
+    if (codigoSalidaCheck.valid) {
+      const duplicado = verificarEvidenciaNoDuplicada('salida', codigoSalidaCheck.clean, fotoArchivo);
+      if (duplicado) {
+        addToast('Evidencia Duplicada', duplicado, 'error');
+        return { ok: false, error: duplicado };
+      }
     }
 
     try {
@@ -1896,6 +1979,238 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Coordinador: crear monitor (cuenta de Auth + perfil + registro) mediante la Edge Function "gestionar-monitores"
+  const invocarGestionMonitores = async (
+    body: Record<string, unknown>
+  ): Promise<{ ok: boolean; error?: string }> => {
+    if (currentRoleRef.current !== 'admin') {
+      const msg = 'Solo el coordinador puede gestionar monitores.';
+      addToast('Acceso Denegado', msg, 'error');
+      return { ok: false, error: msg };
+    }
+    if (!supabase || !isSupabaseConfigured) {
+      const msg = 'La conexión con Supabase no está configurada.';
+      addToast('Error de Conexión', msg, 'error');
+      return { ok: false, error: msg };
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('gestionar-monitores', { body });
+      if (error) {
+        let detalle = error.message;
+        const ctx = (error as { context?: Response }).context;
+        if (ctx && typeof ctx.json === 'function') {
+          try {
+            const payload = await ctx.json();
+            if (payload?.error) detalle = String(payload.error);
+          } catch {
+            // se conserva el mensaje original
+          }
+        }
+        return { ok: false, error: detalle || 'La función gestionar-monitores no respondió correctamente.' };
+      }
+      if (data && typeof data === 'object' && 'error' in data && data.error) {
+        return { ok: false, error: String(data.error) };
+      }
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Error de red al contactar la función gestionar-monitores en Supabase.' };
+    }
+  };
+
+  const crearMonitor = async (payload: NuevoMonitorPayload): Promise<{ ok: boolean; error?: string }> => {
+    const nombres = payload.nombres.trim();
+    const apellidos = payload.apellidos.trim();
+    const codigo = payload.codigo_estudiantil.trim();
+    const correo = payload.correo_institucional.trim().toLowerCase();
+    const telefono = payload.telefono.trim();
+    const semestre = Math.round(Number(payload.semestre));
+
+    const fail = (title: string, msg: string) => {
+      addToast(title, msg, 'warning');
+      return { ok: false, error: msg };
+    };
+
+    if (!nombres || !apellidos || !codigo || !correo || !telefono) {
+      return fail('Campos Obligatorios', 'Completa todos los campos obligatorios del monitor.');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      return fail('Correo Inválido', 'El correo institucional no tiene un formato válido.');
+    }
+    if (!VALID_PROGRAMAS.includes(payload.programa_academico)) {
+      return fail('Programa Inválido', 'El programa académico seleccionado no es válido.');
+    }
+    if (!Number.isInteger(semestre) || semestre < 1 || semestre > 10) {
+      return fail('Semestre Inválido', 'El semestre debe ser un número entero entre 1 y 10.');
+    }
+    if (!payload.password || payload.password.length < 8) {
+      return fail('Contraseña Débil', 'La contraseña temporal debe tener al menos 8 caracteres.');
+    }
+    if (monitores.some((m) => m.codigo_estudiantil.trim().toLowerCase() === codigo.toLowerCase())) {
+      return fail('Código Duplicado', `El código estudiantil "${codigo}" ya está asignado a otro monitor.`);
+    }
+    if (monitores.some((m) => m.correo_institucional.trim().toLowerCase() === correo)) {
+      return fail('Correo Duplicado', `El correo "${correo}" ya está asignado a otro monitor.`);
+    }
+
+    const res = await invocarGestionMonitores({
+      accion: 'crear',
+      nombres,
+      apellidos,
+      codigo_estudiantil: codigo,
+      correo_institucional: correo,
+      programa_academico: payload.programa_academico,
+      semestre,
+      telefono,
+      password: payload.password,
+      horas_asignadas: metaGeneralHoras,
+    });
+
+    if (!res.ok) {
+      addToast('No se Pudo Crear el Monitor', res.error || 'Error desconocido.', 'error');
+      return res;
+    }
+
+    await fetchMonitores();
+    addToast('Monitor Registrado', `${nombres} ${apellidos} fue registrado y ya puede iniciar sesión.`, 'success');
+    return { ok: true };
+  };
+
+  const eliminarMonitor = async (monitorId: string): Promise<{ ok: boolean; error?: string }> => {
+    const existing = monitores.find((m) => m.id === monitorId);
+    if (!existing) {
+      const msg = 'No se encontró el monitor seleccionado.';
+      addToast('Error', msg, 'error');
+      return { ok: false, error: msg };
+    }
+    if (existing.estado === 'en_turno') {
+      const msg = 'No se puede eliminar un monitor que está en turno. Espera a que finalice su jornada.';
+      addToast('Monitor en Turno', msg, 'warning');
+      return { ok: false, error: msg };
+    }
+
+    const res = await invocarGestionMonitores({ accion: 'eliminar', monitor_id: monitorId });
+    if (!res.ok) {
+      addToast('No se Pudo Eliminar el Monitor', res.error || 'Error desconocido.', 'error');
+      return res;
+    }
+
+    setMonitores((prev) => prev.filter((m) => m.id !== monitorId));
+    addToast('Monitor Eliminado', `${existing.nombres} ${existing.apellidos} fue eliminado del registro.`, 'success');
+    return { ok: true };
+  };
+
+  // Coordinador: sumar o restar horas aprobadas manualmente a cualquier monitor
+  const ajustarHorasMonitor = async (
+    monitorId: string,
+    horas: number,
+    operacion: 'sumar' | 'restar'
+  ): Promise<{ ok: boolean; error?: string; monitor?: Monitor }> => {
+    if (currentRoleRef.current !== 'admin') {
+      const msg = 'Solo el coordinador puede ajustar horas manualmente.';
+      addToast('Acceso Denegado', msg, 'error');
+      return { ok: false, error: msg };
+    }
+    if (!supabase || !isSupabaseConfigured) {
+      const msg = 'La conexión con Supabase no está configurada.';
+      addToast('Error de Conexión', msg, 'error');
+      return { ok: false, error: msg };
+    }
+
+    const cantidad = Number(horas);
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      const msg = 'Ingresa una cantidad de horas mayor que cero.';
+      addToast('Valor Inválido', msg, 'warning');
+      return { ok: false, error: msg };
+    }
+
+    const existing = monitores.find((m) => m.id === monitorId);
+    if (!existing) {
+      const msg = 'No se encontró el monitor seleccionado.';
+      addToast('Error', msg, 'error');
+      return { ok: false, error: msg };
+    }
+
+    const nuevoTotal =
+      operacion === 'sumar'
+        ? existing.horas_aprobadas + cantidad
+        : existing.horas_aprobadas - cantidad;
+
+    if (nuevoTotal < 0) {
+      const msg = `No es posible restar ${cantidad} horas: el monitor solo tiene ${existing.horas_aprobadas} horas aprobadas.`;
+      addToast('Horas Insuficientes', msg, 'warning');
+      return { ok: false, error: msg };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('monitores')
+        .update({ horas_aprobadas: Number(nuevoTotal.toFixed(2)) })
+        .eq('id', monitorId)
+        .select('*')
+        .maybeSingle();
+
+      if (error) {
+        const msg = formatMonitorWriteError(error, 'ajustar las horas del monitor');
+        addToast('Error al Ajustar Horas', msg, 'error');
+        return { ok: false, error: msg };
+      }
+      if (!data) {
+        const msg = 'Supabase no devolvió el registro actualizado. Verifica las políticas RLS de UPDATE en public.monitores.';
+        addToast('Ajuste No Confirmado', msg, 'error');
+        return { ok: false, error: msg };
+      }
+
+      const updated = mapMonitorRow(data as Record<string, unknown>, metaGeneralHoras);
+      setMonitores((prev) => prev.map((m) => (m.id === monitorId ? updated : m)));
+      addToast(
+        operacion === 'sumar' ? 'Horas Añadidas' : 'Horas Descontadas',
+        `${updated.nombres} ${updated.apellidos} ahora tiene ${updated.horas_aprobadas} horas aprobadas.`,
+        'success'
+      );
+      return { ok: true, monitor: updated };
+    } catch {
+      const msg = 'Error inesperado de red al ajustar las horas en Supabase.';
+      addToast('Error de Conexión', msg, 'error');
+      return { ok: false, error: msg };
+    }
+  };
+
+  // Monitor: cierre automático de un turno que superó 8 h 10 min sin marcar salida
+  const cerrarTurnoVencido = async (): Promise<void> => {
+    const monitorActual = currentMonitorRef.current;
+    if (currentRoleRef.current !== 'monitor' || !monitorActual || !supabase || !isSupabaseConfigured) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('cerrar_turno_vencido', {
+        p_max_minutos: MAX_TURNO_MINUTOS,
+      });
+      if (error) {
+        addToast(
+          'Turno Vencido',
+          `Tu turno superó las 8 h 10 min. No se pudo pausar automáticamente (${error.message}). Informa a la coordinación.`,
+          'error'
+        );
+        return;
+      }
+
+      await Promise.all([
+        fetchAsistencias(monitorActual.id),
+        fetchCurrentMonitor(),
+        fetchLaboratorios(),
+      ]);
+      addToast(
+        'Turno Pausado Automáticamente',
+        'Olvidaste marcar la salida: tu turno se cerró al cumplir 8 h 10 min y quedó en observación para la coordinación. Radica una novedad si necesitas ajustar las horas.',
+        'warning'
+      );
+    } catch {
+      // se reintentará en el siguiente ciclo del reloj
+    }
+  };
+
   // Fase 2: Sin creación de cuentas desde el cliente (se implementará en fase posterior con Edge Functions)
   const agregarMonitor = () => {
     addToast(
@@ -2010,6 +2325,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         actualizarInfoMonitor,
         cambiarEstadoMonitor,
         actualizarHorasAsignadasMonitor,
+        crearMonitor,
+        eliminarMonitor,
+        ajustarHorasMonitor,
+        cerrarTurnoVencido,
         agregarMonitor,
         actualizarMonitor,
         fetchLaboratorios,

@@ -6,11 +6,11 @@ import {
   Mail, 
   ArrowRight,
   Database,
-  Building2,
   CheckCircle2,
   AlertCircle,
   Loader2
 } from 'lucide-react';
+import { NOMBRE_LABORATORIO, PERIODO_NOMBRE } from '../lib/constants';
 
 export const LoginView: React.FC = () => {
   const { login, authLoading, authError, clearAuthError } = useApp();
@@ -61,10 +61,10 @@ export const LoginView: React.FC = () => {
                 Facultad de Economía y Administración
               </div>
               <h2 className="text-base font-bold text-white tracking-tight mt-1">
-                Salas Tecnológicas
+                {NOMBRE_LABORATORIO}
               </h2>
               <p className="leading-relaxed text-white/90">
-                Sistema institucional para el control de asistencia, verificación de evidencias con Timemark y seguimiento de horas de cumplimiento en salas.
+                Sistema institucional para el control de asistencia, verificación de evidencias con Timemark y seguimiento de horas de cumplimiento en el laboratorio.
               </p>
             </div>
           </div>
@@ -189,11 +189,7 @@ export const LoginView: React.FC = () => {
 
           {/* Footer note */}
           <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-[#4D626C]">
-            <span>Periodo Académico 2026 - I</span>
-            <span className="flex items-center gap-1 text-slate-700 font-medium">
-              <Building2 className="w-3.5 h-3.5 text-[#8F141B]" />
-              Campus Central USCO · Neiva
-            </span>
+            <span>{PERIODO_NOMBRE}</span>
           </div>
         </div>
 

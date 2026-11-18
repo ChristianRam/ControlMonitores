@@ -1,11 +1,11 @@
 import { Monitor, Asistencia, Novedad, PeriodoAcademico, UserProfile } from '../types/database';
 
 export const mockPeriodoActual: PeriodoAcademico = {
-  id: 'per-2026-1',
-  codigo: '2026-1',
-  nombre: 'Periodo Académico 2026 - I',
-  fecha_inicio: '2026-02-02',
-  fecha_fin: '2026-06-19',
+  id: 'per-2026-2',
+  codigo: '2026-II',
+  nombre: 'Periodo Académico 2026-II',
+  fecha_inicio: '2026-08-03',
+  fecha_fin: '2026-12-11',
   activo: true,
 };
 

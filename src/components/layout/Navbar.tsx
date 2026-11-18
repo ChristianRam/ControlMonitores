@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { 
-  Building2, 
+import {
+  Bell,
+  Building2,
   UserCheck, 
   ShieldCheck, 
   LogOut, 
@@ -13,7 +14,24 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
-  const { currentUser, currentRole, logout, periodo } = useApp();
+  const { currentUser, currentRole, logout, periodo, novedades, setActiveTab, addToast } = useApp();
+
+  // Campanita: novedades pendientes por revisar (solo coordinador)
+  const [isBellOpen, setIsBellOpen] = useState(false);
+  const pendientes = novedades.filter((n) => n.estado === 'pendiente');
+  const prevPendientesRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (currentRole !== 'admin') {
+      prevPendientesRef.current = null;
+      return;
+    }
+    const previo = prevPendientesRef.current;
+    if (previo !== null && pendientes.length > previo) {
+      addToast('Nueva Novedad', 'Llegó una nueva novedad para revisión de la coordinación.', 'info');
+    }
+    prevPendientesRef.current = pendientes.length;
+  }, [pendientes.length, currentRole, addToast]);
 
   const displayName =
     currentUser?.nombre_completo?.trim().split(/\s+/).slice(0, 2).join(' ') ||
@@ -60,6 +78,67 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
               <UserCheck className="w-3.5 h-3.5" />
             )}
             <span>{currentRole === 'admin' ? 'Coordinador' : 'Monitor'}</span>
+          </div>
+        )}
+
+        {/* Campanita de novedades */}
+        {currentRole === 'admin' && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsBellOpen((v) => !v)}
+              className="relative p-1.5 text-white/90 hover:text-[#DFD4A6] hover:bg-[#6E0F14] rounded-lg transition-colors cursor-pointer"
+              aria-label={`Novedades pendientes: ${pendientes.length}`}
+              title="Novedades"
+            >
+              <Bell className="w-4.5 h-4.5" />
+              {pendientes.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#DFD4A6] text-[#6E0F14] text-[10px] font-bold flex items-center justify-center">
+                  {pendientes.length > 9 ? '9+' : pendientes.length}
+                </span>
+              )}
+            </button>
+
+            {isBellOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsBellOpen(false)} />
+                <div className="absolute right-0 mt-2 w-72 max-w-[85vw] bg-white text-slate-800 rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden">
+                  <div className="px-3.5 py-2.5 border-b border-slate-100 text-xs font-bold text-slate-900">
+                    Novedades pendientes ({pendientes.length})
+                  </div>
+                  <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                    {pendientes.length === 0 ? (
+                      <p className="px-3.5 py-4 text-xs text-slate-500 text-center">No hay novedades por revisar.</p>
+                    ) : (
+                      pendientes.slice(0, 8).map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          onClick={() => {
+                            setIsBellOpen(false);
+                            setActiveTab('novedades');
+                          }}
+                          className="w-full text-left px-3.5 py-2.5 hover:bg-slate-50 cursor-pointer"
+                        >
+                          <p className="text-xs font-semibold text-slate-900 truncate">{n.titulo}</p>
+                          <p className="text-[11px] text-slate-500 truncate">{n.monitor_nombre || 'Monitor'}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBellOpen(false);
+                      setActiveTab('novedades');
+                    }}
+                    className="w-full px-3.5 py-2 text-xs font-semibold text-[#8F141B] bg-[#faf8ef] border-t border-[#DFD4A6] hover:bg-[#DFD4A6]/40 cursor-pointer"
+                  >
+                    Ver todas las novedades
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 

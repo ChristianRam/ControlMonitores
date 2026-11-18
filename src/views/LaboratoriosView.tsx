@@ -11,6 +11,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import { OTRAS_ACTIVIDADES_CODE } from '../lib/constants';
 
 export const LaboratoriosView: React.FC = () => {
   const { 
@@ -99,7 +100,7 @@ export const LaboratoriosView: React.FC = () => {
             Salas
           </h1>
           <p className="text-xs sm:text-sm text-[#4D626C] mt-0.5">
-            Supervisión de disponibilidad y monitor asignado en las seis salas oficiales.
+            Supervisión de disponibilidad y monitor asignado en las seis salas oficiales y en la opción «Otras actividades» (trabajo fuera de sala).
           </p>
         </div>
 
@@ -169,7 +170,7 @@ export const LaboratoriosView: React.FC = () => {
               No hay salas disponibles para mostrar
             </h2>
             <p className="text-xs text-[#4D626C] mt-1 max-w-md mx-auto">
-              La consulta a <span className="font-mono">public.laboratorios</span> no devolvió registros para las salas configuradas (SALA-01 a SALA-06).
+              La consulta a <span className="font-mono">public.laboratorios</span> no devolvió registros para las salas configuradas (SALA-01 a SALA-06 y OTRAS-ACT).
             </p>
           </div>
           <button
@@ -206,13 +207,15 @@ export const LaboratoriosView: React.FC = () => {
                     </h3>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenEdit(lab)}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
-                    title="Cambiar estado de la sala"
-                  >
-                    <Settings2 className="w-4 h-4" />
-                  </button>
+                  {lab.codigo !== OTRAS_ACTIVIDADES_CODE && (
+                    <button
+                      onClick={() => handleOpenEdit(lab)}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                      title="Cambiar estado de la sala"
+                    >
+                      <Settings2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Monitor asignado + acción de estado */}
@@ -238,12 +241,14 @@ export const LaboratoriosView: React.FC = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={() => handleOpenEdit(lab)}
-                    className="text-xs font-semibold text-[#8F141B] hover:text-[#751016] cursor-pointer shrink-0"
-                  >
-                    Cambiar estado
-                  </button>
+                  {lab.codigo !== OTRAS_ACTIVIDADES_CODE && (
+                    <button
+                      onClick={() => handleOpenEdit(lab)}
+                      className="text-xs font-semibold text-[#8F141B] hover:text-[#751016] cursor-pointer shrink-0"
+                    >
+                      Cambiar estado
+                    </button>
+                  )}
                 </div>
               </div>
             );
