@@ -7,6 +7,8 @@ export type Role = 'admin' | 'monitor';
 
 export type ProgramaAcademico = 
   | 'Administración de Empresas'
+  | 'Administración Financiera'
+  | 'Administración Turística y Hotelera'
   | 'Contaduría Pública'
   | 'Economía';
 
@@ -143,7 +145,7 @@ export interface Novedad {
 export interface PeriodoAcademico {
   id: string;
   codigo: string; // '2026-1'
-  nombre: string; // 'Periodo Académico 2026 - I'
+  nombre: string; // 'Periodo Académico 2026-II'
   fecha_inicio: string;
   fecha_fin: string;
   activo: boolean;

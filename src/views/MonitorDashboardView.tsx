@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { ArchivoEvidencia } from '../types/database';
 import {
@@ -18,6 +18,11 @@ import {
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { TimemarkEvidenceInput } from '../components/ui/TimemarkEvidenceInput';
 import { formatEvidenciaFileSize, validarFormatoPhotoCode } from '../lib/timemark';
+import { LINK_TOMAR_EVIDENCIA, MAX_TURNO_MINUTOS, OTRAS_ACTIVIDADES_CODE } from '../lib/constants';
+
+// "Otras actividades" no es una sala física: siempre está seleccionable
+const labSeleccionable = (l: { codigo: string; estado: string }) =>
+  l.codigo === OTRAS_ACTIVIDADES_CODE || l.estado === 'disponible';
 
 export const MonitorDashboardView: React.FC = () => {
   const {
@@ -37,6 +42,7 @@ export const MonitorDashboardView: React.FC = () => {
     periodo,
     registrarEntrada,
     registrarSalida,
+    cerrarTurnoVencido,
     setActiveTab,
     addToast,
     logout,
@@ -48,6 +54,25 @@ export const MonitorDashboardView: React.FC = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Turno abierto: minutos transcurridos desde la entrada (hora de Colombia, UTC-5 sin horario de verano)
+  const minutosTurno = (() => {
+    if (!activeAsistenciaActual?.fecha || !activeAsistenciaActual.hora_entrada) return null;
+    const inicio = new Date(`${activeAsistenciaActual.fecha}T${activeAsistenciaActual.hora_entrada}-05:00`);
+    if (Number.isNaN(inicio.getTime())) return null;
+    return Math.max(0, Math.floor((currentTime.getTime() - inicio.getTime()) / 60000));
+  })();
+  const turnoVencido = minutosTurno !== null && minutosTurno >= MAX_TURNO_MINUTOS;
+
+  // Si el monitor olvidó marcar salida, el turno se pausa/cierra automáticamente a las 8 h 10 min
+  const cierreIntentadoRef = useRef<string | null>(null);
+  useEffect(() => {
+    const turnoId = activeAsistenciaActual?.id;
+    if (!turnoVencido || !turnoId) return;
+    if (cierreIntentadoRef.current === turnoId) return;
+    cierreIntentadoRef.current = turnoId;
+    void cerrarTurnoVencido();
+  }, [turnoVencido, activeAsistenciaActual?.id, cerrarTurnoVencido]);
 
   // Formulario Entrada
   const [selectedLabId, setSelectedLabId] = useState<string>('');
@@ -75,9 +100,9 @@ export const MonitorDashboardView: React.FC = () => {
 
     const preferredId = currentMonitorData?.laboratorio_habitual_id;
     const preferredAvailable = preferredId
-      ? laboratorios.find((l) => l.id === preferredId && l.estado === 'disponible')
+      ? laboratorios.find((l) => l.id === preferredId && labSeleccionable(l))
       : undefined;
-    const firstAvailable = laboratorios.find((l) => l.estado === 'disponible');
+    const firstAvailable = laboratorios.find((l) => labSeleccionable(l));
     const fallback = preferredAvailable || firstAvailable || laboratorios[0];
 
     if (fallback) {
@@ -129,7 +154,7 @@ export const MonitorDashboardView: React.FC = () => {
   const salaHabitual = laboratorios.find((l) => l.id === monitor.laboratorio_habitual_id);
   const isEnTurno = Boolean(activeAsistenciaActual || monitor.estado === 'en_turno');
   const porcentaje = Math.min(100, Math.round((monitor.horas_aprobadas / (monitor.horas_asignadas || 1)) * 100));
-  const salasDisponibles = laboratorios.filter((l) => l.estado === 'disponible');
+  const salasDisponibles = laboratorios.filter((l) => labSeleccionable(l));
   const selectedLab = laboratorios.find((l) => l.id === selectedLabId);
 
   // Asistencias reales del monitor autenticado (sin datos de demostración)
@@ -169,7 +194,7 @@ export const MonitorDashboardView: React.FC = () => {
       return;
     }
 
-    if (selectedLab.estado !== 'disponible') {
+    if (!labSeleccionable(selectedLab)) {
       const msg = `La sala "${selectedLab.nombre}" no está disponible (estado actual: ${selectedLab.estado}). Selecciona otra sala disponible.`;
       setEntradaError(msg);
       addToast('Sala No Disponible', msg, 'warning');
@@ -375,6 +400,23 @@ export const MonitorDashboardView: React.FC = () => {
               </div>
             )}
 
+            {turnoVencido ? (
+              <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-xs text-rose-800">
+                <AlertCircle className="w-4 h-4 text-[#8F141B] shrink-0 mt-0.5" />
+                <p>
+                  <span className="font-bold text-[#8F141B]">Turno pausado: </span>
+                  superaste las 8 h 10 min sin marcar la salida. El sistema lo cierra automáticamente y queda en observación; si necesitas ajustar las horas, radica una novedad.
+                </p>
+              </div>
+            ) : minutosTurno !== null && minutosTurno >= MAX_TURNO_MINUTOS - 30 ? (
+              <div role="alert" className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2 text-xs text-amber-900">
+                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <p>
+                  Tu turno está por cumplir 8 h 10 min ({MAX_TURNO_MINUTOS - minutosTurno} min restantes). Marca tu salida o se pausará automáticamente.
+                </p>
+              </div>
+            ) : null}
+
             <div className="p-4 bg-[#faf8ef] rounded-xl border border-[#DFD4A6] grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
               <div>
                 <span className="text-[11px] text-[#8F141B] block font-bold">Sala Asignada:</span>
@@ -532,9 +574,9 @@ export const MonitorDashboardView: React.FC = () => {
                   <option value="">No hay salas disponibles para seleccionar</option>
                 ) : (
                   laboratorios.map((l) => (
-                    <option key={l.id} value={l.id} disabled={l.estado !== 'disponible'}>
+                    <option key={l.id} value={l.id} disabled={!labSeleccionable(l)}>
                       {l.nombre} ({l.codigo}) —{' '}
-                      {l.estado === 'disponible'
+                      {labSeleccionable(l)
                         ? 'Disponible'
                         : l.estado === 'en_uso'
                         ? 'En uso'
@@ -548,7 +590,7 @@ export const MonitorDashboardView: React.FC = () => {
                   Todas las salas se encuentran actualmente en uso o en mantenimiento.
                 </p>
               )}
-              {selectedLab && selectedLab.estado !== 'disponible' && (
+              {selectedLab && !labSeleccionable(selectedLab) && (
                 <p className="mt-1 text-[11px] text-[#8F141B] font-medium">
                   La sala seleccionada ({selectedLab.nombre}) está en estado {selectedLab.estado}. Elige una sala disponible.
                 </p>
@@ -557,19 +599,16 @@ export const MonitorDashboardView: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Propósito del Turno / Observación Inicial (Opcional):
+                Vínculo para tomar la evidencia:
               </label>
-              <input
-                type="text"
-                disabled={isSubmittingEntrada}
-                value={notasEntrada}
-                onChange={(e) => {
-                  setNotasEntrada(e.target.value);
-                  setEntradaError(null);
-                }}
-                placeholder="Ej. Apertura de sala, atención y soporte en software SIIGO..."
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B] disabled:opacity-60"
-              />
+              <a
+                href={LINK_TOMAR_EVIDENCIA}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full px-3 py-2 text-xs bg-[#faf8ef] border border-[#DFD4A6] rounded-lg text-[#8F141B] font-semibold underline break-all hover:bg-[#DFD4A6]/30 transition-colors"
+              >
+                {LINK_TOMAR_EVIDENCIA}
+              </a>
             </div>
 
             {/* Timemark Entrada: Componente reutilizable */}

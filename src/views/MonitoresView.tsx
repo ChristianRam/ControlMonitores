@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useApp, MonitorEditPayload } from '../context/AppContext';
+import { useApp, MonitorEditPayload, NuevoMonitorPayload } from '../context/AppContext';
+import { PROGRAMAS_ACADEMICOS } from '../lib/constants';
 import { Monitor, ProgramaAcademico } from '../types/database';
 import {
   Users,
@@ -16,15 +17,24 @@ import {
   ShieldAlert,
   CheckCircle2,
   Building2,
+  UserPlus,
+  Trash2,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ConfigurarMetaModal } from '../components/modals/ConfigurarMetaModal';
 
-const PROGRAMAS_ACADEMICOS: ProgramaAcademico[] = [
-  'Economía',
-  'Contaduría Pública',
-  'Administración de Empresas',
-];
+const FORM_NUEVO_MONITOR_VACIO: NuevoMonitorPayload = {
+  nombres: '',
+  apellidos: '',
+  codigo_estudiantil: '',
+  correo_institucional: '',
+  programa_academico: PROGRAMAS_ACADEMICOS[0],
+  semestre: 1,
+  telefono: '',
+  password: '',
+};
 
 export const MonitoresView: React.FC = () => {
   const {
@@ -42,6 +52,9 @@ export const MonitoresView: React.FC = () => {
     actualizarInfoMonitor,
     cambiarEstadoMonitor,
     actualizarHorasAsignadasMonitor,
+    crearMonitor,
+    eliminarMonitor,
+    ajustarHorasMonitor,
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,6 +94,24 @@ export const MonitoresView: React.FC = () => {
   const [horasStep, setHorasStep] = useState<'form' | 'confirm'>('form');
   const [horasError, setHorasError] = useState<string | null>(null);
   const [isSavingHoras, setIsSavingHoras] = useState(false);
+
+  // Registrar (crear) monitor
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<NuevoMonitorPayload>(FORM_NUEVO_MONITOR_VACIO);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Eliminar monitor
+  const [deleteTarget, setDeleteTarget] = useState<Monitor | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Añadir / quitar horas manualmente
+  const [ajusteTarget, setAjusteTarget] = useState<Monitor | null>(null);
+  const [ajusteOperacion, setAjusteOperacion] = useState<'sumar' | 'restar'>('sumar');
+  const [ajusteHoras, setAjusteHoras] = useState<string>('');
+  const [ajusteError, setAjusteError] = useState<string | null>(null);
+  const [isAjustando, setIsAjustando] = useState(false);
 
   useEffect(() => {
     if (currentRole === 'admin') {
@@ -329,6 +360,74 @@ export const MonitoresView: React.FC = () => {
     }
   };
 
+  const closeCreateModal = () => {
+    if (isCreating) return;
+    setIsCreateOpen(false);
+    setCreateError(null);
+  };
+
+  const handleSubmitCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isCreating) return;
+    setCreateError(null);
+    setIsCreating(true);
+    try {
+      const res = await crearMonitor(createForm);
+      if (!res.ok) {
+        setCreateError(res.error || 'No se pudo registrar el monitor.');
+        return;
+      }
+      setIsCreateOpen(false);
+      setCreateForm(FORM_NUEVO_MONITOR_VACIO);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+    setDeleteError(null);
+    setIsDeleting(true);
+    try {
+      const res = await eliminarMonitor(deleteTarget.id);
+      if (!res.ok) {
+        setDeleteError(res.error || 'No se pudo eliminar el monitor.');
+        return;
+      }
+      if (selectedMonitorId === deleteTarget.id) setSelectedMonitorId(null);
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openAjusteModal = (monitor: Monitor, operacion: 'sumar' | 'restar') => {
+    setAjusteTarget(monitor);
+    setAjusteOperacion(operacion);
+    setAjusteHoras('');
+    setAjusteError(null);
+  };
+
+  const handleSubmitAjuste = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ajusteTarget || isAjustando) return;
+    setAjusteError(null);
+    setIsAjustando(true);
+    try {
+      const res = await ajustarHorasMonitor(ajusteTarget.id, Number(ajusteHoras), ajusteOperacion);
+      if (!res.ok) {
+        setAjusteError(res.error || 'No se pudo ajustar las horas.');
+        return;
+      }
+      setAjusteTarget(null);
+    } finally {
+      setIsAjustando(false);
+    }
+  };
+
+  const inputCls =
+    'w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:bg-white focus:border-[#8F141B] disabled:opacity-60';
+
   return (
     <div className="space-y-6">
       {/* Header Context */}
@@ -340,7 +439,7 @@ export const MonitoresView: React.FC = () => {
             <span className="text-[#4D626C]">Gestión de Estudiantes</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
-            Nómina de Monitores de Salas
+            Registro de Monitores de Salas
           </h1>
           <p className="text-xs sm:text-sm text-[#4D626C] mt-0.5">
             Administración oficial en Supabase: edición de datos, estado operativo, sala habitual y horas asignadas individuales.
@@ -354,6 +453,19 @@ export const MonitoresView: React.FC = () => {
               {monitoresLoading ? 'Consultando...' : `${monitores.length} Monitores`}
             </span>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setCreateForm(FORM_NUEVO_MONITOR_VACIO);
+              setCreateError(null);
+              setIsCreateOpen(true);
+            }}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-[#8F141B] hover:bg-[#751016] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Registrar Monitor</span>
+          </button>
 
           <button
             onClick={() => setIsConfigMetaOpen(true)}
@@ -397,10 +509,10 @@ export const MonitoresView: React.FC = () => {
             onChange={(e) => setFilterPrograma(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:bg-white focus:border-[#8F141B] outline-none cursor-pointer"
           >
-            <option value="todos">Todos los Programas Académicos</option>
-            <option value="Economía">Economía</option>
-            <option value="Contaduría Pública">Contaduría Pública</option>
-            <option value="Administración de Empresas">Administración de Empresas</option>
+            <option value="todos">Programas de la facultad</option>
+            {PROGRAMAS_ACADEMICOS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
           </select>
         </div>
 
@@ -482,7 +594,6 @@ export const MonitoresView: React.FC = () => {
                 <tr>
                   <th className="py-3 px-4">Monitor / Código</th>
                   <th className="py-3 px-4">Programa & Semestre</th>
-                  <th className="py-3 px-4">Sala Habitual</th>
                   <th className="py-3 px-4">Horas / Cumplimiento</th>
                   <th className="py-3 px-4">Estado</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
@@ -491,13 +602,12 @@ export const MonitoresView: React.FC = () => {
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredMonitores.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-500">
+                    <td colSpan={5} className="py-8 text-center text-slate-500">
                       No se encontraron monitores con los filtros seleccionados.
                     </td>
                   </tr>
                 ) : (
                   filteredMonitores.map((monitor) => {
-                    const lab = laboratorios.find((l) => l.id === monitor.laboratorio_habitual_id);
                     const porcentaje = Math.min(
                       100,
                       Math.round((monitor.horas_aprobadas / (monitor.horas_asignadas || 1)) * 100)
@@ -529,19 +639,6 @@ export const MonitoresView: React.FC = () => {
                         <td className="py-3.5 px-4">
                           <p className="font-semibold text-slate-800">{monitor.programa_academico}</p>
                           <p className="text-[11px] text-[#4D626C]">Semestre {monitor.semestre}°</p>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-slate-600">
-                          {lab ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-slate-800 font-medium">{lab.nombre}</span>
-                              <span className="font-mono text-[10px] text-[#4D626C] bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
-                                {lab.codigo}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400">Rotativo</span>
-                          )}
                         </td>
 
                         <td className="py-3.5 px-4 min-w-[180px]">
@@ -615,6 +712,24 @@ export const MonitoresView: React.FC = () => {
                               <span>Ficha</span>
                               <ArrowUpRight className="w-3 h-3" />
                             </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteTarget(monitor);
+                                setDeleteError(null);
+                              }}
+                              disabled={isEnTurno}
+                              className={`px-2 py-1 text-xs font-semibold rounded border transition-colors inline-flex items-center gap-1 ${
+                                isEnTurno
+                                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                  : 'text-rose-800 bg-rose-50 border-rose-200 hover:bg-rose-100 cursor-pointer'
+                              }`}
+                              title={isEnTurno ? 'No se puede eliminar un monitor en turno activo' : 'Eliminar monitor'}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Eliminar</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -623,6 +738,189 @@ export const MonitoresView: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Registrar Monitor */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Registrar Monitor</h3>
+                <p className="text-xs text-slate-500">Crea la cuenta de acceso y el registro del monitor.</p>
+              </div>
+              <button onClick={closeCreateModal} disabled={isCreating} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg disabled:opacity-50">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void handleSubmitCreate(e)} className="p-5 space-y-3 text-xs">
+              {createError && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#8F141B] shrink-0 mt-0.5" />
+                  <span>{createError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Nombres *</label>
+                  <input required disabled={isCreating} value={createForm.nombres} onChange={(e) => setCreateForm((p) => ({ ...p, nombres: e.target.value }))} className={inputCls} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Apellidos *</label>
+                  <input required disabled={isCreating} value={createForm.apellidos} onChange={(e) => setCreateForm((p) => ({ ...p, apellidos: e.target.value }))} className={inputCls} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Código estudiantil *</label>
+                  <input required disabled={isCreating} value={createForm.codigo_estudiantil} onChange={(e) => setCreateForm((p) => ({ ...p, codigo_estudiantil: e.target.value }))} className={`${inputCls} font-mono`} />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Teléfono *</label>
+                  <input required disabled={isCreating} value={createForm.telefono} onChange={(e) => setCreateForm((p) => ({ ...p, telefono: e.target.value }))} className={inputCls} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Correo institucional *</label>
+                <input type="email" required disabled={isCreating} placeholder="usuario@usco.edu.co" value={createForm.correo_institucional} onChange={(e) => setCreateForm((p) => ({ ...p, correo_institucional: e.target.value }))} className={inputCls} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block font-semibold text-slate-700 mb-1">Programa académico *</label>
+                  <select disabled={isCreating} value={createForm.programa_academico} onChange={(e) => setCreateForm((p) => ({ ...p, programa_academico: e.target.value as ProgramaAcademico }))} className={`${inputCls} cursor-pointer`}>
+                    {PROGRAMAS_ACADEMICOS.map((prog) => (
+                      <option key={prog} value={prog}>{prog}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Semestre *</label>
+                  <input type="number" min={1} max={10} step={1} required disabled={isCreating} value={createForm.semestre} onChange={(e) => setCreateForm((p) => ({ ...p, semestre: Number(e.target.value) }))} className={`${inputCls} font-mono`} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Contraseña temporal * (mínimo 8 caracteres)</label>
+                <input type="text" required minLength={8} disabled={isCreating} value={createForm.password} onChange={(e) => setCreateForm((p) => ({ ...p, password: e.target.value }))} className={`${inputCls} font-mono`} autoComplete="off" />
+                <p className="text-[11px] text-[#4D626C] mt-1">Entrégasela al monitor para su primer ingreso.</p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+                <button type="button" onClick={closeCreateModal} disabled={isCreating} className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-50">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isCreating} className="px-4 py-2 bg-[#8F141B] hover:bg-[#751016] text-white font-semibold rounded-lg shadow-sm cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5">
+                  {isCreating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{isCreating ? 'Registrando...' : 'Registrar Monitor'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Eliminar Monitor */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
+            <div className="p-5 space-y-3 text-xs">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-rose-50 text-[#8F141B] flex items-center justify-center shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Eliminar monitor</h3>
+                  <p className="text-slate-600 mt-1 leading-relaxed">
+                    Vas a eliminar a <strong>{deleteTarget.nombres} {deleteTarget.apellidos}</strong> ({deleteTarget.codigo_estudiantil}). Su cuenta de acceso y su registro dejarán de existir. Esta acción no se puede deshacer.
+                  </p>
+                </div>
+              </div>
+              {deleteError && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#8F141B] shrink-0 mt-0.5" />
+                  <span>{deleteError}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => !isDeleting && setDeleteTarget(null)} disabled={isDeleting} className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-50">
+                  Cancelar
+                </button>
+                <button type="button" onClick={() => void handleConfirmDelete()} disabled={isDeleting} className="px-4 py-2 bg-[#8F141B] hover:bg-[#751016] text-white font-semibold rounded-lg cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5">
+                  {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{isDeleting ? 'Eliminando...' : 'Sí, eliminar'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Añadir / Quitar horas manualmente */}
+      {ajusteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden">
+            <form onSubmit={(e) => void handleSubmitAjuste(e)} className="p-5 space-y-3 text-xs">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {ajusteOperacion === 'sumar' ? 'Añadir horas' : 'Quitar horas'}
+                </h3>
+                <p className="text-slate-600 mt-0.5">
+                  {ajusteTarget.nombres} {ajusteTarget.apellidos} · Horas aprobadas actuales:{' '}
+                  <strong className="font-mono">{ajusteTarget.horas_aprobadas}</strong>
+                </p>
+              </div>
+
+              <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+                {(['sumar', 'restar'] as const).map((op) => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => setAjusteOperacion(op)}
+                    className={`flex-1 px-3 py-1.5 rounded-md font-semibold cursor-pointer ${
+                      ajusteOperacion === op ? 'bg-white text-[#8F141B] shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    {op === 'sumar' ? 'Añadir' : 'Quitar'}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Cantidad de horas *</label>
+                <input
+                  type="number"
+                  min={0.1}
+                  step={0.1}
+                  required
+                  autoFocus
+                  disabled={isAjustando}
+                  value={ajusteHoras}
+                  onChange={(e) => setAjusteHoras(e.target.value)}
+                  className={`${inputCls} font-mono`}
+                />
+              </div>
+
+              {ajusteError && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-[#8F141B] shrink-0 mt-0.5" />
+                  <span>{ajusteError}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => !isAjustando && setAjusteTarget(null)} disabled={isAjustando} className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-50">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isAjustando} className="px-4 py-2 bg-[#8F141B] hover:bg-[#751016] text-white font-semibold rounded-lg cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5">
+                  {isAjustando && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{isAjustando ? 'Guardando...' : 'Guardar'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -758,6 +1056,24 @@ export const MonitoresView: React.FC = () => {
                     >
                       <Clock className="w-3.5 h-3.5" />
                       <span>Horas Asignadas</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openAjusteModal(selectedMonitor, 'sumar')}
+                      className="px-2.5 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Añadir Horas</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => openAjusteModal(selectedMonitor, 'restar')}
+                      className="px-2.5 py-1.5 bg-white hover:bg-rose-50 text-rose-800 border border-rose-300 rounded-lg text-[11px] font-semibold inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                      <span>Quitar Horas</span>
                     </button>
 
                     <button
